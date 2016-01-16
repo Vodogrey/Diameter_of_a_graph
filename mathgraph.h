@@ -14,7 +14,7 @@ public slots:
     void set_matrix(int cow, int row, int size);
     void clear_Matrix();
     int floid();
-    int get_max(QVector<int> vec);
+    void greedy();
 
 private:
     QVector<QVector<int> > matrixOfSize; // матрица

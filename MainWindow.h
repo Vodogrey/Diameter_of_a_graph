@@ -33,7 +33,7 @@ protected:
 	protected slots:
 	void slot_pb_ok();
     void slot_set_table(QString Count);
-    void slot_LoadData();
+    void slot_LoadData(bool checked);
     void slot_densityChanged();
 
 private:

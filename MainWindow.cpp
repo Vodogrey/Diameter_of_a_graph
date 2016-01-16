@@ -17,15 +17,17 @@ void MainWindow::GUI()
 {
 	m_layout = new QGridLayout();
 	m_widget = new QWidget();
-	m_pb_ok = new QPushButton();
+    m_pb_ok = new QPushButton();
     m_lb_countTops = new QLabel("Введите количество вершин");
     m_lb_density = new QLabel("Введите плотность графа");
     m_cb_floid = new QCheckBox("алгоритм Флоида-Уоршелла");
     m_cb_random = new QCheckBox("Зарандомить матрицу смежностей?");
-    m_le_countTops = new QLineEdit();
-    m_le_density = new QLineEdit();
+    m_cb_floid->setChecked(true);
+    m_cb_random->setChecked(true);
+    m_le_countTops = new QLineEdit("5");
+    m_le_density = new QLineEdit("0.2");
     m_tw_matrix = new QTableWidget();
-    m_lb_resultOut = new QLabel;
+    m_lb_resultOut = new QLabel();
     m_math = new mathGraph();
 
     m_layout->addWidget(m_tw_matrix, 0, 0, 5, 5);
@@ -50,15 +52,16 @@ void MainWindow::Buttons()
     connect(m_le_density,SIGNAL(textEdited(QString)), this, SLOT(slot_densityChanged()));
     connect(this, SIGNAL(setMatrix(int,int,int)),m_math, SLOT(set_matrix(int,int,int)));
     connect(this, SIGNAL(calcFloid()), m_math, SLOT(floid()));
-    connect(m_cb_random, SIGNAL(clicked(bool)), this, SLOT(slot_LoadData()));
+    connect(m_cb_random, SIGNAL(clicked(bool)), this, SLOT(slot_LoadData(bool)));
 }
 
 void MainWindow::slot_pb_ok()
 {
     emit clearMatrix();
-    slot_LoadData();
+    slot_LoadData(true);
     if(m_cb_floid->isChecked()) {
         int result = calcFloid();
+        m_math->greedy();
         m_lb_resultOut->setText(QString::number(result, 'i', 0));
     }
 }
@@ -76,8 +79,9 @@ void MainWindow::slot_densityChanged()
         m_le_density->setText("1");
 }
 
-void MainWindow::slot_LoadData()
+void MainWindow::slot_LoadData(bool checked)
 {
+    if(checked == true) {
     int countTops = m_le_countTops->text().toInt();
     double density = m_le_density->text().toDouble();
     int countEdges = (countTops*(countTops-1)*density)/2;
@@ -94,10 +98,15 @@ void MainWindow::slot_LoadData()
                 }
             }
         while(countEdges) {
-            int row = qrand() % matrixSize;
-            int col = qrand() % matrixSize;
+            int row;
+            int col;
+            do {
+                row = qrand() % matrixSize;
+                col = qrand() % matrixSize;
+            } while(col == row);
 
-            int size = m_tw_matrix->item(row,col)->text().toInt();
+
+            int  size = m_tw_matrix->item(row,col)->text().toInt();
 
             if(!size) {
                 QTableWidgetItem *newItem = new QTableWidgetItem(tr("%1").arg(rand()%100));
@@ -118,5 +127,6 @@ void MainWindow::slot_LoadData()
                     emit setMatrix(row, col, size);
                 }
             }
+    }
     }
 }
