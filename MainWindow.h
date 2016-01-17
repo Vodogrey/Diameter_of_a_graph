@@ -11,8 +11,10 @@
 #include <qcheckbox.h>
 #include <qlineedit.h>
 #include <qtablewidget.h>
+#include <QPen>
 
 #include "mathgraph.h"
+#include <qcustomplot.h>
 
 class MainWindow : public QMainWindow
 {
@@ -25,15 +27,17 @@ signals:
     void setMatrix(int, int, int);
     void clearMatrix();
     int calcFloid();
+    QVector<double> getResults(int);
 
 protected:
 	void GUI();
 	void Buttons();
+    void outGraph();
 
 	protected slots:
 	void slot_pb_ok();
     void slot_set_table(QString Count);
-    void slot_LoadData(bool checked);
+    void slot_LoadData(int curCountTops);
     void slot_densityChanged();
 
 private:
@@ -51,4 +55,8 @@ private:
 
     mathGraph* m_math;
     int matrixSize = 0;
+
+    QCustomPlot* cPlot;
+
+    QVector<double> steps;
 };

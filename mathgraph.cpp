@@ -33,7 +33,7 @@ void mathGraph::clear_Matrix()
     matrixOfSize.resize(2);
 }
 
-int mathGraph::floid()
+void mathGraph::floid()
 {
     QVector<QVector<int> > sum;
     sum.resize(matrixOfSize.size());
@@ -74,10 +74,11 @@ int mathGraph::floid()
                 max = sum[i][j];
         }
     }
-    return max;
+    floidResults << max;
+    qDebug() << "max flo" << max;
 }
 
-int mathGraph::greedy()
+void mathGraph::greedy()
 {
     QVector<QVector<int> > sum;
     sum.resize(matrixOfSize.size()-1);
@@ -138,6 +139,7 @@ int mathGraph::greedy()
         }
     }
     qDebug() << "max dex" << max;
+    dijkstraResults << max;
 
 //end alg
     for (int i = 0; i < sum.size(); i++){
@@ -145,5 +147,27 @@ int mathGraph::greedy()
             if (sum[i][j] == INT_MAX)
                 sum[i][j] = 0;
         }
+    }
+}
+
+
+QVector<double> mathGraph::get_results(int alg)
+{
+    QVector<double> tempResults;
+
+
+    switch (alg) {
+    case 0:
+        for(int i = 0; i < floidResults.size();i++) {
+            tempResults.append((double)floidResults.at(i));
+        }
+        return tempResults;
+    case 1:
+        for(int i = 0; i < dijkstraResults.size();i++) {
+            tempResults.append((double)dijkstraResults.at(i));
+        }
+        return tempResults;
+    default:
+        break;
     }
 }

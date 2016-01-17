@@ -1,4 +1,4 @@
-QT += core gui widgets
+QT += core gui widgets printsupport
 
 
 
@@ -10,9 +10,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     MainWindow.cpp \
-    mathgraph.cpp
+    mathgraph.cpp \
+    qcustomplot.cpp
 
 HEADERS += \
     MainWindow.h \
-    mathgraph.h
+    mathgraph.h \
+    qcustomplot.h
 
