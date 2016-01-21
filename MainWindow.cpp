@@ -1,7 +1,7 @@
 #include "MainWindow.h"
 
 #define STEP_SIZE 1
-#define SAMPLE_SIZE 100
+#define SAMPLE_SIZE 10
 
 
 MainWindow::MainWindow(QWidget* parent)
@@ -67,6 +67,7 @@ void MainWindow::Buttons()
 void MainWindow::slot_pb_ok()
 {
     emit clearMatrix();
+    slot_set_table(m_le_countTops->text());
     clear();
     int countTops = m_le_countTops->text().toInt();
     for(int i = STEP_SIZE; i <= countTops; i+=STEP_SIZE) {
@@ -75,7 +76,7 @@ void MainWindow::slot_pb_ok()
             slot_LoadData(i);
             calcFloid();
             m_math->dijkstra();
-            //m_math->greedy();
+            m_math->randomSearch();
         }
         steps << (double)i;
     }
@@ -162,38 +163,54 @@ void MainWindow::outGraph()
         if(FloydCentr.at(i) > max || max == 0.0) {
             max = FloydCentr.at(i);
         }
-
     }
+    for(int i = 0; i < RandCentr.size(); i++) {
+        if(RandCentr.at(i) > max || max == 0.0) {
+            max = RandCentr.at(i);
+        }
+    }
+// results
+    QPen floyd;
+    floyd.setColor(QColor(Qt::red));
+    floyd.setWidthF(6);
+
+    QPen dijkstra;
+    dijkstra.setColor(QColor(30, 40, 255, 150));
+    dijkstra.setStyle(Qt::DotLine);
+    dijkstra.setWidthF(5);
+
+    QPen randPen;
+    randPen.setColor(QColor(Qt::yellow));
+    randPen.setStyle(Qt::DashDotDotLine);
+    randPen.setWidthF(4);
+
 
     cPlotResults->addGraph(); //будем выводить результат к количеству вершин
 
-    QPen floyd;
-    floyd.setColor(QColor(Qt::red));
     //floyd.setStyle(Qt::DotLine);
     cPlotResults->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::red, Qt::white, 7));
-    floyd.setWidthF(5);
     cPlotResults->graph(0)->setPen(floyd);
 
     cPlotResults->graph(0)->setData(steps, FloydCentr);
 
     cPlotResults->addGraph();
-
-    QPen dijkstra;
-    dijkstra.setColor(QColor(30, 40, 255, 150));
-    dijkstra.setStyle(Qt::DotLine);
-    dijkstra.setWidthF(4);
-
     cPlotResults->graph(1)->setPen(dijkstra);
-
     cPlotResults->graph(1)->setData(steps, DijkstraCentr);
+
+    cPlotResults->addGraph();
+    cPlotResults->graph(2)->setPen(randPen);
+    cPlotResults->graph(2)->setData(steps, RandCentr);
     cPlotResults->xAxis->setLabel("Количество вершин");
     cPlotResults->yAxis->setLabel("Результат");
     cPlotResults->xAxis->setRange(STEP_SIZE, m_le_countTops->text().toInt());
     cPlotResults->yAxis->setRange(0, max);
+
+
+
     cPlotResults->replot();
     cPlotResults->show();
 
-
+//time
     //results = getResults(0,1);
     cPlotTime->addGraph();
     cPlotTime->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, Qt::red, Qt::white, 7));
@@ -207,34 +224,50 @@ void MainWindow::outGraph()
 
     }
 
-    cPlotTime->addGraph();
-    cPlotTime->graph(1)->setPen(dijkstra);
-    //  results = getResults(1,1);
-    cPlotTime->graph(1)->setData(steps, DijkstraCentrTime);
-
-
     for(int i = 0; i < DijkstraCentrTime.size(); i++) {
         if(DijkstraCentrTime.at(i) > max)
             max = DijkstraCentrTime.at(i);
 
     }
+
+    for(int i = 0; i < RandCentrTime.size(); i++) {
+        if(RandCentrTime.at(i) > max)
+            max = RandCentrTime.at(i);
+
+    }
+
+
+    cPlotTime->addGraph();
+    cPlotTime->graph(1)->setPen(dijkstra);
+    //  results = getResults(1,1);
+    cPlotTime->graph(1)->setData(steps, DijkstraCentrTime);
+
+    cPlotTime->addGraph();
+    cPlotTime->graph(2)->setPen(randPen);
+    cPlotTime->graph(2)->setData(steps, RandCentrTime);
+
+
+
+
     cPlotTime->xAxis->setLabel("Количество вершин");
     cPlotTime->yAxis->setLabel("Время");
     cPlotTime->xAxis->setRange(STEP_SIZE, m_le_countTops->text().toInt());
     cPlotTime->yAxis->setRange(0, max);
+
     cPlotTime->replot();
     cPlotTime->show();
 
-
-    //    QVector<double> tmpSteps;
-    //    for(int i = 0; i < steps.size(); i+=SAMPLE_SIZE) {
-    //        tmpSteps.push_back(steps.at(i));
-    //    }
-
+//solve
     cPlotSolve->addGraph();
     cPlotSolve->graph(0)->setLineStyle(QCPGraph::lsStepCenter);
-    cPlotSolve->graph(0)->setPen(QPen(QColor(0, 0, 255)));
-    cPlotSolve->graph(0)->setData(steps, chance);
+    cPlotSolve->graph(0)->setPen(dijkstra);
+    cPlotSolve->graph(0)->setData(steps, chanceDijkstra);
+
+    cPlotSolve->addGraph();
+    cPlotSolve->graph(1)->setLineStyle(QCPGraph::lsStepCenter);
+    cPlotSolve->graph(1)->setPen(randPen);
+    cPlotSolve->graph(1)->setData(steps, chanceRand);
+
     cPlotSolve->xAxis->setLabel("Количество вершин");
     cPlotSolve->yAxis->setLabel("Вероятность успеха");
     cPlotSolve->xAxis->setRange(STEP_SIZE, m_le_countTops->text().toInt());
@@ -254,6 +287,9 @@ void MainWindow::calcChance()
     QVector<double> resultsDijk;
     resultsDijk = getResults(1,0);
 
+    QVector<double> resultsRand;
+    resultsRand = getResults(2,0);
+
     int tmp = 0;
     int plus = 0;
     for(int i = 0; i < resultsFlo.size(); i++) {
@@ -261,7 +297,22 @@ void MainWindow::calcChance()
         if(resultsFlo[i] != resultsDijk[i])
             plus++;
         if(tmp == SAMPLE_SIZE) {
-            chance.push_back((double)1-(plus/SAMPLE_SIZE));
+            chanceDijkstra.push_back((double)1-(plus/SAMPLE_SIZE));
+            plus = 0;
+            tmp = 0;
+        }
+    }
+
+    plus = 0;
+    tmp = 0;
+
+    for(int i = 0; i < resultsFlo.size(); i++) {
+        tmp++;
+        if(resultsFlo[i] != resultsRand[i])
+            plus++;
+        if(tmp == SAMPLE_SIZE) {
+            chanceRand.push_back((double)1-(double)((double)plus/(double)SAMPLE_SIZE));
+          //      qDebug() << chanceRand.back() << "chance" << (double)1-(double)((double)plus/(double)SAMPLE_SIZE);
             plus = 0;
             tmp = 0;
         }
@@ -275,7 +326,7 @@ void MainWindow::calcCentr()
     results = getResults(0,0);
     double max = 0.0;
     int tmp = 0;
-
+//floy
     for(int i = 0; i < results.size(); i++) {
         tmp++;
         max+=(double)results.at(i);
@@ -287,6 +338,7 @@ void MainWindow::calcCentr()
         }
 
     }
+//dijk
     max = 0.0;
     tmp = 0;
     results = getResults(1,0);
@@ -296,6 +348,21 @@ void MainWindow::calcCentr()
         if(tmp == SAMPLE_SIZE) {
             max /= SAMPLE_SIZE;
             DijkstraCentr.push_back((double)max);
+            max = 0.0;
+            tmp = 0;
+        }
+    }
+//rand
+    max = 0.0;
+    tmp = 0;
+    results = getResults(2,0);
+    qDebug() << "size" << results.size();
+    for(int i = 0; i < results.size(); i++) {
+        tmp++;
+        max+=(double)results.at(i);
+        if(tmp == SAMPLE_SIZE) {
+            max /= SAMPLE_SIZE;
+            RandCentr.push_back((double)max);
             max = 0.0;
             tmp = 0;
         }
@@ -331,16 +398,34 @@ void MainWindow::calcCentr()
             tmp = 0;
         }
     }
+
+    max = 0.0;
+    tmp = 0;
+    results = getResults(2,1);
+    for(int i = 0; i < results.size(); i++) {
+        tmp++;
+        max+=(double)results.at(i);
+        if(tmp == SAMPLE_SIZE) {
+            max /= SAMPLE_SIZE;
+            RandCentrTime.push_back((double)max);
+            max = 0.0;
+            tmp = 0;
+        }
+    }
 }
 
 
 void  MainWindow::clear()
 {
     steps.clear();
-    chance.clear();
+    chanceDijkstra.clear();
+    chanceRand.clear();
 
     FloydCentr.clear();
     DijkstraCentr.clear();
     FloydCentrTime.clear();
     DijkstraCentrTime.clear();
+
+    RandCentr.clear();
+    RandCentrTime.clear();
 }

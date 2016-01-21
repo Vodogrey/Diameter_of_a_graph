@@ -2,7 +2,7 @@
 
 mathGraph::mathGraph()
 {
-
+    qsrand(QTime::currentTime().msec());
 }
 
 mathGraph::~mathGraph()
@@ -25,6 +25,8 @@ void mathGraph::set_matrix(int cow, int row, int size)
 
     matrixOfSize[cow][row] = size;
     matrixOfSize[row][cow] = size;
+    if(size != 0)
+        setEdges(cow,row,size);
 }
 
 void mathGraph::clear_Matrix()
@@ -35,6 +37,9 @@ void mathGraph::clear_Matrix()
     floydTime.clear();
     dijkstraResults.clear();
     dijkstraTime.clear();
+    randTime.clear();
+    randResults.clear();
+    listEdges.clear();
 }
 
 void mathGraph::floyd()
@@ -43,15 +48,16 @@ void mathGraph::floyd()
     t.start();
 
     QVector<QVector<int> > sum;
-    sum.resize(matrixOfSize.size());
-    for (int i = 0; i < sum.size(); ++i)
-        sum[i].resize(matrixOfSize.size());
+    //    sum.resize(matrixOfSize.size());
+    //    for (int i = 0; i < sum.size(); ++i)
+    //        sum[i].resize(matrixOfSize.size());
+    sum = matrixOfSize;
 
 
 
     for (int i = 0; i < sum.size(); i++) {
         for (int j = 0; j < sum.size(); j++) {
-            sum[i][j] = matrixOfSize[i][j];
+            // sum[i][j] = matrixOfSize[i][j];
             if (!sum[i][j])
                 sum[i][j] = 10000;
         }
@@ -81,6 +87,7 @@ void mathGraph::floyd()
     }
     floydResults << max;
     floydTime << t.elapsed();
+    qDebug() << "flo end";
 }
 
 void mathGraph::dijkstra()
@@ -152,107 +159,57 @@ void mathGraph::dijkstra()
                 sum[i][j] = 0;
         }
     }
+    qDebug() << "dijk end";
 }
 
-void mathGraph::greedy()
+void mathGraph::randomSearch()
 {
-    QVector<QVector<int> > sum;
-    sum.resize(matrixOfSize.size()-1);
-    for (int i = 0; i < sum.size(); ++i)
-        sum[i].resize(matrixOfSize.size()-1);
+    QTime t;
+    t.start();
+    bool searched = false;
+    bool isEnded = false;
+    int max = 0;
+    if(listEdges.isEmpty()) {
+        searched = true;
+    }
+    max = 0;
+    QVector<bool> used (listEdges.size(), false);
+    bool NeedRandom = true;
+    while(!searched) {
+        int v;
+        if(NeedRandom)
+            v = qrand() % matrixOfSize.size();
+        isEnded = false;
+        while(!isEnded) {
+            for(int i = 0; i < listEdges.size(); i++) {
+                int tmpV = v;
+                if(listEdges.at(i).a == v && !used[i]) {
+                    max += listEdges.at(i).size;
+                    tmpV = listEdges.at(i).b;
+                    used[i] = true;
+                }
+                if(tmpV != v) {
+                    isEnded = true;
+                    v = tmpV;
+                    NeedRandom = false;
+                }
+                else {
+                    isEnded = true;
+                    if(max > 0) {
+                        searched = true;
+                        NeedRandom = true;
+                    }
 
-    for(int i = 0; i < sum.size(); i++) {
-        for(int j = 0; j < sum.size(); j++) {
-            sum[i][j] = matrixOfSize[i][j];
+                }
+            }
+
         }
     }
-
-    //    int i = 0;
-
-    //    QVector<bool> used (sum.size(), false);
-    //    QVector<int> dist (sum.size(), INT_MAX);
-    //    QQueue<int> q;
-
-    //    int max = 0;
-
-    //    used[i] = true;
-    //    dist[i] = 0;
-
-    //    q.push_back(i);
-
-    //    while (!q.isEmpty()) {
-    //        int i = q.front();
-    //        q.pop_back();
-    //        used[i] = false;
-    //        for(int j = 0; j < sum.size(); j++) {
-    //            int len = sum[i][j];
-    //            int v;
-    //            for(int tmp = 0; tmp < sum.size(); tmp++) {
-    //                if(sum[j][tmp] > 0) {
-    //                    v = tmp;
-    //                    break;
-    //                }
-    //                    else {
-    //                        v = 0;
-    //                    }
-    //            }
-
-    //            if(dist[v] > dist[i] + len) {
-    //                dist[v] = dist[i] + len;
-    //                max = dist[v];
-    //                qDebug() << "max" << max;
-    //            }
-    //            if (!used[v]) {
-    //                     q.push_back(v);
-    //                     used[v] = true;
-    //                   }
-
-    //        }
-
-    //    }
-
-
-
-
-
-    //    for (int i = 0; i < sum.size(); i++) {
-    //        for (int j = 0; j < sum.size(); j++) {
-    //            if(matrixOfSize[i][j] != 0)
-    //                sum[i][j] = 1;
-    //        }
-    //    }
-
-
-    //    int max = 0;
-    //    for(int i = 0; i < sum.size(); i++) {
-    //        QVector<int> from(sum.size(), -1);
-    //        QVector<int> used(sum.size(), 0);
-    //        QVector<int> dist(sum.size());
-    //        QQueue<int> q;
-    //        q.push_back(i);
-    //        dist[i] = 0;
-    //        used[i] = true;
-    //        for(int j = 0; j < sum.size()-1; j++) {
-    //            while (!q.empty())
-    //            {
-    //                int w = q.front();
-    //                q.pop_back();
-    //                for (int k = 0; k < sum.size(); ++i)
-    //                {
-    //                    if (sum[w][k] && !used[k])
-    //                    {
-    //                        dist[k] = dist[w] + matrixOfSize[w][i];
-    //                        from[k] = w;
-    //                        if(max < dist[k] || max == 0)
-    //                            max = dist[k];
-    //                        q.push_back(k);
-    //                        used[k] = true;
-    //                    }
-    //                }
-    //            }
-    //        }
-    //    }
-    //    qDebug() << max;
+    listEdges.clear();
+    qDebug() << "max" << max;
+    randResults.append(max);
+    randTime << t.elapsed();
+    qDebug() << "rand end";
 
 }
 
@@ -282,8 +239,28 @@ QVector<double> mathGraph::get_results(int alg, int type)
                 tempResults.append((double)dijkstraTime.at(i));
             }
         return tempResults;
+    case 2:
+        if(type == 0)
+            for(int i = 0; i < randResults.size();i++) {
+                tempResults.append((double)randResults.at(i));
+            }
+        if(type == 1)
+            for(int i = 0; i < dijkstraTime.size();i++) {
+                tempResults.append((double)randTime.at(i));
+            }
+        return tempResults;
+
     default:
         break;
     }
 }
 
+void mathGraph::setEdges(int V1, int V2, int size)
+{
+    Edge edge;
+    edge.a = V1;
+    edge.b = V2;
+    edge.size = size;
+    //  qDebug() << "at" << V1 << V2;
+    listEdges.append(edge);
+}

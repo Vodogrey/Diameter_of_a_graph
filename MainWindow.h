@@ -63,10 +63,13 @@ private:
     QCustomPlot* cPlotSolve;
 
     QVector<double> steps;
-    QVector<double> chance;
+    QVector<double> chanceDijkstra;
+    QVector<double> chanceRand;
 
     QVector<double> FloydCentr;
     QVector<double> DijkstraCentr;
     QVector<double> FloydCentrTime;
     QVector<double> DijkstraCentrTime;
+    QVector<double> RandCentr;
+    QVector<double> RandCentrTime;
 };
