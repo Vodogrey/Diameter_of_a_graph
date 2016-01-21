@@ -27,12 +27,15 @@ signals:
     void setMatrix(int, int, int);
     void clearMatrix();
     int calcFloid();
-    QVector<double> getResults(int);
+    QVector<double> getResults(int, int);
 
 protected:
 	void GUI();
 	void Buttons();
     void outGraph();
+    void calcChance();
+    void calcCentr();
+    void clear();
 
 	protected slots:
 	void slot_pb_ok();
@@ -48,15 +51,22 @@ private:
     QLabel* m_lb_density;
     QLineEdit* m_le_countTops;
     QLineEdit* m_le_density;
-    QCheckBox* m_cb_floid;
     QCheckBox* m_cb_random;
     QTableWidget *m_tw_matrix;
     QLabel* m_lb_resultOut;
 
     mathGraph* m_math;
-    int matrixSize = 0;
+    int matrixSize;
 
-    QCustomPlot* cPlot;
+    QCustomPlot* cPlotResults;
+    QCustomPlot* cPlotTime;
+    QCustomPlot* cPlotSolve;
 
     QVector<double> steps;
+    QVector<double> chance;
+
+    QVector<double> FloydCentr;
+    QVector<double> DijkstraCentr;
+    QVector<double> FloydCentrTime;
+    QVector<double> DijkstraCentrTime;
 };
